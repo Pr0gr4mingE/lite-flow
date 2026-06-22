@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { KanbanColumnProps } from "@/shared/types/ui/kanban-board.props"; // Ajuste se necessário
+import { KanbanColumnProps } from "@/shared/types/ui/kanban-board.props";
 import { DropResult } from "@hello-pangea/dnd";
 import toast from "react-hot-toast";
-// 1. Importe a nova Action
 import { atualizarPipelineAction } from "@/actions/negociacoes/atualizar-pipeline.action";
 
 export function usePipeline(colunasIniciais: KanbanColumnProps[]) {
@@ -16,7 +15,8 @@ export function usePipeline(colunasIniciais: KanbanColumnProps[]) {
     setColunas([...colunasIniciais]); 
   }
 
-  const onDragEnd = (result: DropResult) => {
+  // Transformamos a função em async para lidar melhor com a chamada ao servidor
+  const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
 
     if (!destination) return;
@@ -31,6 +31,7 @@ export function usePipeline(colunasIniciais: KanbanColumnProps[]) {
 
     if (!colunaOrigem || !colunaDestino) return;
 
+    // Retira o card da origem e o injeta no destino
     const [cardMovido] = colunaOrigem.cards.splice(source.index, 1);
     colunaDestino.cards.splice(destination.index, 0, cardMovido);
 
@@ -45,12 +46,18 @@ export function usePipeline(colunasIniciais: KanbanColumnProps[]) {
       },
     });
 
-    // 2. Chama a Action em background para persistir no db.json
-    atualizarPipelineAction(novasColunas).then((resultado) => {
-      if (!resultado.sucesso) {
-        toast.error(resultado.mensagem || "Erro ao salvar a nova posição.");
-      }
-    });
+    // 2. Chama a Action otimizada enviando APENAS as coordenadas (Payload minúsculo e rápido)
+    const resposta = await atualizarPipelineAction(
+      cardMovido.id,           // Qual card moveu
+      source.droppableId,      // De onde saiu
+      destination.droppableId, // Para onde foi
+      destination.index        // Em que posição ficou
+    );
+
+    // Se a Action retornar erro (ex: banco fora do ar), avisamos o usuário
+    if (!resposta.sucesso) {
+      toast.error(resposta.mensagem || "Erro ao salvar a nova posição no servidor.");
+    }
   };
 
   return {
