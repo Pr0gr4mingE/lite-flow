@@ -2,7 +2,8 @@ import Link from 'next/link';
 
 export function Sidebar() {
   const menuItens = [
-    { nome: 'Pipeline (Kanban)', rota: '/dashboard/pipeline' },
+    { nome: 'Kanban', rota: '/dashboard/kanban'},
+    { nome: 'Pipeline', rota: '/dashboard/pipeline' },
     { nome: 'Leads', rota: '/dashboard/leads' },
     { nome: 'Clientes', rota: '/dashboard/clientes' },
     { nome: 'Tarefas', rota: '/dashboard/tarefas' },
