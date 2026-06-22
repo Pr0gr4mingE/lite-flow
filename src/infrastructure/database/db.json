@@ -1,0 +1,30 @@
+{
+  "colunas": [
+    {
+      "idDaColuna": "col-1",
+      "titulo": "Prospecção",
+      "corDoCabecalho": "bg-blue-50",
+      "cards": [
+        {
+          "id": 1,
+          "titulo": "Implantação de ERP",
+          "subtitulo": "TechCorp Indústria",
+          "valorFormatado": "R$ 15.000,00",
+          "corDestaque": "azul"
+        }
+      ]
+    },
+    {
+      "idDaColuna": "col-2",
+      "titulo": "Proposta",
+      "corDoCabecalho": "bg-yellow-50",
+      "cards": []
+    },
+    {
+      "idDaColuna": "col-3",
+      "titulo": "Fechamento",
+      "corDoCabecalho": "bg-green-50",
+      "cards": []
+    }
+  ]
+}
