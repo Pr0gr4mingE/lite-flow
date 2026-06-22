@@ -4,15 +4,7 @@
       "idDaColuna": "col-1",
       "titulo": "Prospecção",
       "corDoCabecalho": "bg-blue-50",
-      "cards": [
-        {
-          "id": 1,
-          "titulo": "Implantação de ERP",
-          "subtitulo": "TechCorp Indústria",
-          "valorFormatado": "R$ 15.000,00",
-          "corDestaque": "azul"
-        }
-      ]
+      "cards": []
     },
     {
       "idDaColuna": "col-2",
@@ -25,6 +17,26 @@
       "titulo": "Fechamento",
       "corDoCabecalho": "bg-green-50",
       "cards": []
+    }
+  ],
+  "leads": [
+    {
+      "id": 1,
+      "nome": "Carlos Silva",
+      "empresa": "TechCorp Indústria",
+      "email": "carlos@techcorp.com",
+      "telefone": "(11) 99999-9999",
+      "status": "Novo"
+    }
+  ],
+  "clientes": [
+    {
+      "id": 1,
+      "nome": "Marina Costa",
+      "empresa": "Logística Express",
+      "cnpj": "12.345.678/0001-90",
+      "valorMensal": 1500,
+      "dataEntrada": "2026-05-10"
     }
   ]
 }
