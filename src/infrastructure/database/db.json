@@ -1,42 +1,102 @@
 {
   "colunas": [
     {
-      "idDaColuna": "col-1",
+      "idDaColuna": "col-prospeccao",
       "titulo": "Prospecção",
-      "corDoCabecalho": "bg-blue-50",
-      "cards": []
+      "cards": [
+        {
+          "id": "lead-001",
+          "titulo": "Tech Corp SA",
+          "empresa": "Tech Corp",
+          "valorFormatado": "R$ 15.000,00",
+          "atividades": [
+            {
+              "id": "ativ-001",
+              "data": "2024-10-25",
+              "assunto": "Reunião de Alinhamento Inicial"
+            },
+            {
+              "id": "f996fea8-7f94-4401-adae-420bb0556fbb",
+              "data": "2026-06-25",
+              "assunto": "REUNIÃO01"
+            }
+          ]
+        },
+        {
+          "id": "lead-002",
+          "titulo": "InovaTech LTDA",
+          "empresa": "InovaTech",
+          "valorFormatado": "R$ 8.500,00",
+          "atividades": []
+        },
+        {
+          "id": "prop-001",
+          "titulo": "Global Systems",
+          "empresa": "Global Systems",
+          "valorFormatado": "R$ 22.000,00"
+        }
+      ]
     },
     {
-      "idDaColuna": "col-2",
+      "idDaColuna": "col-proposta",
       "titulo": "Proposta",
-      "corDoCabecalho": "bg-yellow-50",
       "cards": []
     },
     {
-      "idDaColuna": "col-3",
+      "idDaColuna": "col-fechamento",
       "titulo": "Fechamento",
-      "corDoCabecalho": "bg-green-50",
-      "cards": []
-    }
-  ],
-  "leads": [
-    {
-      "id": 1,
-      "nome": "Carlos Silva",
-      "empresa": "TechCorp Indústria",
-      "email": "carlos@techcorp.com",
-      "telefone": "(11) 99999-9999",
-      "status": "Novo"
-    }
-  ],
-  "clientes": [
-    {
-      "id": 1,
-      "nome": "Marina Costa",
-      "empresa": "Logística Express",
-      "cnpj": "12.345.678/0001-90",
-      "valorMensal": 1500,
-      "dataEntrada": "2026-05-10"
+      "cards": [
+        {
+          "id": "cli-001",
+          "titulo": "Alpha Solutions",
+          "empresa": "Alpha Solutions",
+          "valorFormatado": "R$ 45.000,00",
+          "statusNegociacao": "fechada",
+          "tarefas": [
+            {
+              "id": "tar-001",
+              "tipo": "tarefa",
+              "descricao": "Enviar contrato assinado pelo jurídico",
+              "data": "2024-10-26"
+            },
+            {
+              "id": "tar-002",
+              "tipo": "lembrete",
+              "descricao": "Cobrar pagamento da primeira parcela",
+              "data": "2024-10-30"
+            },
+            {
+              "id": "b2bccd0c-d733-4036-80e6-cf0abef49a9e",
+              "tipo": "tarefa",
+              "descricao": "REUNIÃO DOS BOLADÕES01",
+              "data": "2026-06-29"
+            }
+          ]
+        },
+        {
+          "id": "cli-002",
+          "titulo": "Mega Store Importações",
+          "empresa": "Mega Store",
+          "valorFormatado": "R$ 12.000,00",
+          "statusNegociacao": "fechada",
+          "tarefas": [
+            {
+              "id": "c6b11bf8-e715-48be-9e7e-fd26d2947a94",
+              "tipo": "lembrete",
+              "descricao": "UGAUGA",
+              "data": "2026-06-26"
+            }
+          ]
+        },
+        {
+          "id": "cli-003",
+          "titulo": "Beta Logística",
+          "empresa": "Beta Log",
+          "valorFormatado": "R$ 9.800,00",
+          "statusNegociacao": "indeferida",
+          "tarefas": []
+        }
+      ]
     }
   ]
 }

@@ -1,8 +1,14 @@
 import { jsonDb } from "@/infrastructure/database/json-client";
 import { KanbanColumnProps } from "@/shared/types/ui/kanban-board.props";
-import { KanbanCardProps } from "@/shared/types/ui/kanban-card.props"; // <-- Adicionei a importação do card
+import { KanbanCardProps } from "@/shared/types/ui/kanban-card.props";
 import { ClientesClient } from "@/components/features/clientes/clientes-client";
-import { ClienteProps } from "@/hooks/clientes/use-clientes";
+import { ClienteProps, StatusNegociacao, TarefaCliente } from "@/hooks/clientes/use-clientes";
+
+// Estendemos a interface para o TypeScript não reclamar ao ler o banco
+interface CardComCRM extends KanbanCardProps {
+  statusNegociacao?: StatusNegociacao;
+  tarefas?: TarefaCliente[];
+}
 
 export default async function ClientesPage() {
   const banco = await jsonDb.ler();
@@ -13,12 +19,19 @@ export default async function ClientesPage() {
 
   const clientesBrutos = colunaFechamento ? colunaFechamento.cards : [];
   
-  // Trocamos o 'any' por 'KanbanCardProps' para manter a tipagem estrita e o TypeScript feliz
-  const clientesIniciais: ClienteProps[] = clientesBrutos.map((card: KanbanCardProps) => ({
-    ...card,
-    statusNegociacao: 'pendente', 
-    tarefas: [], 
-  }));
+  const clientesIniciais: ClienteProps[] = clientesBrutos.map((cardBase: KanbanCardProps) => {
+    const card = cardBase as CardComCRM;
+    
+    return {
+      ...card,
+      // A CORREÇÃO ESTÁ AQUI: 
+      // Lê o statusNegociacao do banco. Se for null/undefined, vira 'pendente'
+      statusNegociacao: card.statusNegociacao || 'pendente', 
+      
+      // Mesma coisa para as tarefas
+      tarefas: card.tarefas || [], 
+    };
+  });
 
   return (
     <div className="h-full flex flex-col space-y-6 max-w-5xl mx-auto">

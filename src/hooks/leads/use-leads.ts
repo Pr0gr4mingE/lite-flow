@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { KanbanCardProps } from "@/shared/types/ui/kanban-card.props";
+import { agendarReuniaoAction } from "@/actions/crm-actions"; // <-- Importação da action
 
 // Expandimos o tipo do card para suportar atividades
 export interface AtividadeReuniao {
@@ -17,7 +18,8 @@ export interface LeadProps extends KanbanCardProps {
 export function useLeads(leadsIniciais: LeadProps[]) {
   const [leads, setLeads] = useState<LeadProps[]>(leadsIniciais);
 
-  const agendarReuniao = (leadId: string | number, data: string, assunto: string) => {
+  // A função agora é async para poder aguardar a resposta do servidor
+  const agendarReuniao = async (leadId: string | number, data: string, assunto: string) => {
     if (!data || !assunto) return;
 
     const novaReuniao: AtividadeReuniao = {
@@ -26,7 +28,7 @@ export function useLeads(leadsIniciais: LeadProps[]) {
       assunto,
     };
 
-    // Atualiza o estado da tela instantaneamente
+    // 1. Atualiza o estado da tela instantaneamente (Atualização Otimista)
     setLeads((prevLeads) =>
       prevLeads.map((lead) =>
         lead.id === leadId
@@ -35,8 +37,8 @@ export function useLeads(leadsIniciais: LeadProps[]) {
       )
     );
 
-    // TODO: No futuro, chamaremos uma Server Action aqui para salvar no db.json
-    // ex: await agendarReuniaoAction(leadId, novaReuniao);
+    // 2. Persiste os dados chamando a Server Action em segundo plano
+    await agendarReuniaoAction(leadId, novaReuniao);
   };
 
   return {
