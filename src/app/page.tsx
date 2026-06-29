@@ -11,13 +11,12 @@ export default function HomePage() {
           Gestão de pipeline, leads e clientes de forma visual, rápida e sem complicações.
         </p>
         
-        {/* Container flexível para os botões */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
-            href="/dashboard/kanban"
+            href="/login"
             className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors shadow-md text-lg w-full sm:w-auto"
           >
-            Acessar o Sistema
+            Fazer Login
           </Link>
           
           <Link

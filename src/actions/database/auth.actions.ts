@@ -2,6 +2,7 @@
 
 import fs from "fs/promises";
 import path from "path";
+import { cookies } from "next/headers";
 
 // 1. Definimos os tipos (Isso resolve os problemas com 'any')
 export interface UsuarioProps {
@@ -83,4 +84,34 @@ export async function cadastrarUsuarioAction(dadosFormulario: Omit<UsuarioProps,
   }
 
   return { sucesso: true, mensagem: "Conta e Pipeline criados com sucesso!" };
+}
+
+export async function loginAction(email: string, senhaDigitada: string) {
+  const bancoUsuarios = await lerBancoUsuarios();
+
+  const usuario = bancoUsuarios.usuarios.find((u: UsuarioProps) => u.email === email);
+
+  // 1. Verifica se o usuário existe
+  if (!usuario) {
+    return { sucesso: false, mensagem: "Usuário não encontrado." };
+  }
+
+  // 2. Verifica a senha
+  if (usuario.senha !== senhaDigitada) {
+    return { sucesso: false, mensagem: "Senha incorreta." };
+  }
+
+  // 3. Cria a "Sessão" (O Crachá)
+  // Salva o ID do usuário em um cookie criptografado no navegador que dura 7 dias
+  const cookieStore = await cookies();
+  
+  // Agora sim podemos usar o set!
+  cookieStore.set("crm_session", usuario.id, {
+    httpOnly: true, 
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 7, 
+    path: "/", 
+  });
+
+  return { sucesso: true, mensagem: "Login efetuado com sucesso!" };
 }
