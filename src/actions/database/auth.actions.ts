@@ -3,6 +3,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation"; //
 
 // 1. Definimos os tipos (Isso resolve os problemas com 'any')
 export interface UsuarioProps {
@@ -114,4 +115,11 @@ export async function loginAction(email: string, senhaDigitada: string) {
   });
 
   return { sucesso: true, mensagem: "Login efetuado com sucesso!" };
+}
+
+// Adicione esta função ao final do arquivo auth.actions.ts existente
+export async function logoutAction() {
+  const cookieStore = await cookies();
+  cookieStore.delete("crm_session");
+  redirect("/login");
 }

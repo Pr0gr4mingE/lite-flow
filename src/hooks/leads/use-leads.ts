@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { KanbanCardProps } from "@/shared/types/ui/kanban-card.props";
-import { agendarReuniaoAction } from "@/actions/crm-actions"; // <-- Importação da action
+import { agendarReuniaoAction } from "@/actions/crm.actions"; // <-- Importação da action
 
 // Expandimos o tipo do card para suportar atividades
 export interface AtividadeReuniao {

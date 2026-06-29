@@ -1,19 +1,53 @@
 import { jsonDb } from "@/infrastructure/database/json-client";
 import { KanbanColumnProps } from "@/shared/types/ui/kanban-board.props";
-import { KanbanCardProps } from "@/shared/types/ui/kanban-card.props";
+import { KanbanCardProps} from "@/shared/types/ui/kanban-card.props"
 import { ClientesClient } from "@/components/features/clientes/clientes-client";
 import { ClienteProps, StatusNegociacao, TarefaCliente } from "@/hooks/clientes/use-clientes";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-// Estendemos a interface para o TypeScript não reclamar ao ler o banco
+// ==========================================
+// 1. TIPAGENS (Resolvendo o problema do 'any' e do .quadros)
+// ==========================================
+interface QuadroProps {
+  id: string;
+  titulo: string;
+  donoId: string;
+  membrosIds: string[];
+  colunas: KanbanColumnProps[];
+}
+
+interface BancoDeDadosProps {
+  quadros: QuadroProps[];
+}
+
 interface CardComCRM extends KanbanCardProps {
   statusNegociacao?: StatusNegociacao;
   tarefas?: TarefaCliente[];
 }
 
 export default async function ClientesPage() {
-  const banco = await jsonDb.ler();
+  // Controle de Acesso
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("crm_session")?.value;
 
-  const colunaFechamento = banco.colunas.find(
+  if (!userId) {
+    redirect("/login");
+  }
+
+  // 2. Lemos o banco usando o Double Cast para o TypeScript reconhecer o .quadros
+  const banco = (await jsonDb.ler()) as unknown as BancoDeDadosProps;
+  
+  // 3. Localiza o quadro do utilizador sem usar 'any'
+  const quadros = banco.quadros || [];
+  const quadroDoUsuario = quadros.find((q: QuadroProps) => q.membrosIds.includes(userId));
+
+  if (!quadroDoUsuario) {
+    redirect("/login"); // Se o usuário logado não tiver quadro, joga pro login por segurança
+  }
+
+  // Procura a coluna de fechamento do utilizador
+  const colunaFechamento = quadroDoUsuario.colunas.find(
     (c: KanbanColumnProps) => c.titulo.toLowerCase().includes("fechamento")
   );
 
@@ -21,14 +55,9 @@ export default async function ClientesPage() {
   
   const clientesIniciais: ClienteProps[] = clientesBrutos.map((cardBase: KanbanCardProps) => {
     const card = cardBase as CardComCRM;
-    
     return {
       ...card,
-      // A CORREÇÃO ESTÁ AQUI: 
-      // Lê o statusNegociacao do banco. Se for null/undefined, vira 'pendente'
       statusNegociacao: card.statusNegociacao || 'pendente', 
-      
-      // Mesma coisa para as tarefas
       tarefas: card.tarefas || [], 
     };
   });

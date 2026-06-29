@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { KanbanCardProps } from "@/shared/types/ui/kanban-card.props";
-import { atualizarStatusClienteAction, adicionarTarefaClienteAction } from "@/actions/crm-actions"; // <-- Importação das actions
+import { atualizarStatusClienteAction, adicionarTarefaClienteAction } from "@/actions/crm.actions"; // <-- Importação das actions
 
 export type StatusNegociacao = 'pendente' | 'fechada' | 'indeferida';
 export type TipoTarefa = 'tarefa' | 'reuniao' | 'lembrete';

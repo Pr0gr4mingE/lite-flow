@@ -3,14 +3,14 @@
 import { DragDropContext } from "@hello-pangea/dnd";
 import { KanbanColumnProps } from "@/shared/types/ui/kanban-board.props";
 import { KanbanColumn } from "./kanban-column";
-import { usePipeline } from "@/hooks/negociacoes/use-pipeline"; // 1. Importa o hook
+import { usePipeline } from "@/hooks/negociacoes/use-pipeline"; 
 
 interface BoardProps {
-  colunasIniciais: KanbanColumnProps[]; // 2. Renomeamos a prop
+  colunasIniciais: KanbanColumnProps[]; 
 }
 
 export function KanbanBoard({ colunasIniciais }: BoardProps) {
-  // 3. O hook agora controla o estado visual e nos entrega o onDragEnd
+  // O hook assume toda a responsabilidade visual e de persistência de dados
   const { colunas, onDragEnd } = usePipeline(colunasIniciais);
 
   return (

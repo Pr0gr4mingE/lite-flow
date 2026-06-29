@@ -4,7 +4,7 @@ import { useState } from "react";
 import { KanbanColumnProps } from "@/shared/types/ui/kanban-board.props";
 import { DropResult } from "@hello-pangea/dnd";
 import toast from "react-hot-toast";
-import { atualizarPipelineAction } from "@/actions/negociacoes/atualizar-pipeline.action";
+import { moverCardAction } from "@/actions/crm.actions"; // <-- Trocado para a nossa Action multi-tenant
 
 export function usePipeline(colunasIniciais: KanbanColumnProps[]) {
   const [colunas, setColunas] = useState<KanbanColumnProps[]>(colunasIniciais);
@@ -15,9 +15,8 @@ export function usePipeline(colunasIniciais: KanbanColumnProps[]) {
     setColunas([...colunasIniciais]); 
   }
 
-  // Transformamos a função em async para lidar melhor com a chamada ao servidor
   const onDragEnd = async (result: DropResult) => {
-    const { source, destination } = result;
+    const { source, destination, draggableId } = result;
 
     if (!destination) return;
 
@@ -25,7 +24,12 @@ export function usePipeline(colunasIniciais: KanbanColumnProps[]) {
       return;
     }
 
-    const novasColunas = [...colunas];
+    // Criamos cópias seguras para evitar mutação direta (boas práticas do React)
+    const novasColunas = colunas.map(col => ({
+      ...col,
+      cards: [...col.cards]
+    }));
+
     const colunaOrigem = novasColunas.find(col => col.idDaColuna === source.droppableId);
     const colunaDestino = novasColunas.find(col => col.idDaColuna === destination.droppableId);
 
@@ -46,17 +50,21 @@ export function usePipeline(colunasIniciais: KanbanColumnProps[]) {
       },
     });
 
-    // 2. Chama a Action otimizada enviando APENAS as coordenadas (Payload minúsculo e rápido)
-    const resposta = await atualizarPipelineAction(
-      cardMovido.id,           // Qual card moveu
-      source.droppableId,      // De onde saiu
-      destination.droppableId, // Para onde foi
-      destination.index        // Em que posição ficou
+    // 1. Mapeia a nova ordem visual gerando um array apenas com os IDs
+   const novaOrdemIds = colunaDestino.cards.map((card) => String(card.id));
+
+    // 2. Chama a Action enviando os dados exatos que preparamos no back-end
+    const resposta = await moverCardAction(
+      draggableId,
+      source.droppableId,
+      destination.droppableId,
+      novaOrdemIds // Passando a lista de IDs para o servidor ordenar corretamente
     );
 
-    // Se a Action retornar erro (ex: banco fora do ar), avisamos o usuário
+    // Se a Action retornar erro avisamos o usuário
     if (!resposta.sucesso) {
-      toast.error(resposta.mensagem || "Erro ao salvar a nova posição no servidor.");
+      toast.error(resposta.erro || "Erro ao salvar a nova posição no servidor.");
+      // Se quisesse ser ainda mais rigoroso, poderia dar um setColunas(colunasAnteriores) aqui para reverter o visual
     }
   };
 
