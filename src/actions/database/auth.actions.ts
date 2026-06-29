@@ -3,7 +3,7 @@
 import fs from "fs/promises";
 import path from "path";
 
-// 1. Tipagem estrita para o Usuário
+// 1. Definimos os tipos (Isso resolve os problemas com 'any')
 export interface UsuarioProps {
   id: string;
   nome: string;
@@ -16,13 +16,14 @@ interface UsersDatabase {
   usuarios: UsuarioProps[];
 }
 
-// 2. Caminho absoluto para o arquivo users.json
-const caminhoArquivo = path.join(process.cwd(), "src", "infrastructure", "database", "users.json");
+// 2. Caminhos absolutos para os arquivos JSON
+const caminhoUsuarios = path.join(process.cwd(), "src", "infrastructure", "database", "users.json");
+const caminhoCrm = path.join(process.cwd(), "src", "infrastructure", "database", "db.json");
 
-// Função auxiliar interna para ler o arquivo
+// 3. A função que o VS Code não estava achando precisa estar aqui
 async function lerBancoUsuarios(): Promise<UsersDatabase> {
   try {
-    const conteudo = await fs.readFile(caminhoArquivo, "utf-8");
+    const conteudo = await fs.readFile(caminhoUsuarios, "utf-8");
     return JSON.parse(conteudo);
   } catch (error) {
     // Se o arquivo não existir ou der erro, retorna a estrutura inicial vazia
@@ -30,18 +31,19 @@ async function lerBancoUsuarios(): Promise<UsersDatabase> {
   }
 }
 
-// 3. A Ação que será chamada pelo Front-end
+// 4. Ação principal tipada (sem 'any')
+// Usamos Omit porque quando o formulário é enviado, ele ainda não tem 'id' nem 'criadoEm'
 export async function cadastrarUsuarioAction(dadosFormulario: Omit<UsuarioProps, "id" | "criadoEm">) {
-  const banco = await lerBancoUsuarios();
+  const bancoUsuarios = await lerBancoUsuarios();
 
-  // Verifica se o e-mail já está cadastrado
-  const usuarioExistente = banco.usuarios.find((u) => u.email === dadosFormulario.email);
+  // Tipamos o 'u' como UsuarioProps
+  const usuarioExistente = bancoUsuarios.usuarios.find((u: UsuarioProps) => u.email === dadosFormulario.email);
   
   if (usuarioExistente) {
     return { sucesso: false, mensagem: "Este e-mail já está em uso." };
   }
 
-  // Monta o novo usuário
+  // Cria o Usuário
   const novoUsuario: UsuarioProps = {
     id: crypto.randomUUID(),
     nome: dadosFormulario.nome,
@@ -50,9 +52,35 @@ export async function cadastrarUsuarioAction(dadosFormulario: Omit<UsuarioProps,
     criadoEm: new Date().toISOString(),
   };
 
-  // Adiciona ao banco e salva no arquivo
-  banco.usuarios.push(novoUsuario);
-  await fs.writeFile(caminhoArquivo, JSON.stringify(banco, null, 2), "utf-8");
+  bancoUsuarios.usuarios.push(novoUsuario);
+  await fs.writeFile(caminhoUsuarios, JSON.stringify(bancoUsuarios, null, 2), "utf-8");
 
-  return { sucesso: true, mensagem: "Conta criada com sucesso!" };
+  // Cria o Quadro Zerado para o Usuário no db.json
+  try {
+    const conteudoCrm = await fs.readFile(caminhoCrm, "utf-8");
+    const bancoCrm = JSON.parse(conteudoCrm);
+
+    const novoQuadro = {
+      id: crypto.randomUUID(),
+      titulo: `Pipeline de ${novoUsuario.nome}`,
+      donoId: novoUsuario.id,
+      membrosIds: [novoUsuario.id], // Ele mesmo já é membro do próprio quadro
+      colunas: [
+        { idDaColuna: "col-prospeccao", titulo: "Prospecção", cards: [] },
+        { idDaColuna: "col-proposta", titulo: "Proposta", cards: [] },
+        { idDaColuna: "col-fechamento", titulo: "Fechamento", cards: [] }
+      ]
+    };
+
+    // Se a propriedade quadros não existir, cria ela
+    if (!bancoCrm.quadros) bancoCrm.quadros = [];
+    
+    bancoCrm.quadros.push(novoQuadro);
+    await fs.writeFile(caminhoCrm, JSON.stringify(bancoCrm, null, 2), "utf-8");
+  } catch (error) {
+    console.error("Erro ao criar o quadro inicial:", error);
+    // Em um sistema real, você faria um "rollback" (apagaria o usuário) se o quadro falhasse.
+  }
+
+  return { sucesso: true, mensagem: "Conta e Pipeline criados com sucesso!" };
 }
