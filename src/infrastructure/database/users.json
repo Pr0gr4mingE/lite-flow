@@ -1,0 +1,11 @@
+{
+  "usuarios": [
+    {
+      "id": "7a315c1d-0bfd-491e-95a5-dd3ec6831dab",
+      "nome": "Victor",
+      "email": "jujuba02@gmail.com",
+      "senha": "12345678",
+      "criadoEm": "2026-06-29T17:01:46.279Z"
+    }
+  ]
+}

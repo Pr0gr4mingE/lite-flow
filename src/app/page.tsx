@@ -11,12 +11,22 @@ export default function HomePage() {
           Gestão de pipeline, leads e clientes de forma visual, rápida e sem complicações.
         </p>
         
-        <Link
-          href="/dashboard/kanban"
-          className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors shadow-md text-lg"
-        >
-          Acessar o Sistema
-        </Link>
+        {/* Container flexível para os botões */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link
+            href="/dashboard/kanban"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors shadow-md text-lg w-full sm:w-auto"
+          >
+            Acessar o Sistema
+          </Link>
+          
+          <Link
+            href="/cadastro"
+            className="inline-block bg-white border-2 border-gray-200 hover:border-blue-200 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-8 rounded-lg transition-colors shadow-sm text-lg w-full sm:w-auto"
+          >
+            Cadastrar
+          </Link>
+        </div>
       </div>
     </div>
   );
