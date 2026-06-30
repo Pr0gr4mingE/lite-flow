@@ -3,9 +3,11 @@
 import fs from "fs/promises";
 import path from "path";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation"; //
+import { redirect } from "next/navigation";
+// Importando as tipagens do seu CRM para garantir que o quadro seja criado perfeitamente
+import { BancoDeDadosProps, QuadroProps, ColunaProps } from "@/actions/crm.actions"; 
 
-// 1. Definimos os tipos (Isso resolve os problemas com 'any')
+// 1. Definimos os tipos
 export interface UsuarioProps {
   id: string;
   nome: string;
@@ -18,11 +20,11 @@ interface UsersDatabase {
   usuarios: UsuarioProps[];
 }
 
-// 2. Caminhos absolutos para os arquivos JSON
+// 2. Caminhos absolutos para os arquivos JSON (Bancos separados!)
 const caminhoUsuarios = path.join(process.cwd(), "src", "infrastructure", "database", "users.json");
 const caminhoCrm = path.join(process.cwd(), "src", "infrastructure", "database", "db.json");
 
-// 3. A função que o VS Code não estava achando precisa estar aqui
+// 3. Função auxiliar de leitura
 async function lerBancoUsuarios(): Promise<UsersDatabase> {
   try {
     const conteudo = await fs.readFile(caminhoUsuarios, "utf-8");
@@ -33,12 +35,13 @@ async function lerBancoUsuarios(): Promise<UsersDatabase> {
   }
 }
 
-// 4. Ação principal tipada (sem 'any')
-// Usamos Omit porque quando o formulário é enviado, ele ainda não tem 'id' nem 'criadoEm'
+// ==========================================
+// SERVER ACTIONS
+// ==========================================
+
 export async function cadastrarUsuarioAction(dadosFormulario: Omit<UsuarioProps, "id" | "criadoEm">) {
   const bancoUsuarios = await lerBancoUsuarios();
 
-  // Tipamos o 'u' como UsuarioProps
   const usuarioExistente = bancoUsuarios.usuarios.find((u: UsuarioProps) => u.email === dadosFormulario.email);
   
   if (usuarioExistente) {
@@ -57,32 +60,41 @@ export async function cadastrarUsuarioAction(dadosFormulario: Omit<UsuarioProps,
   bancoUsuarios.usuarios.push(novoUsuario);
   await fs.writeFile(caminhoUsuarios, JSON.stringify(bancoUsuarios, null, 2), "utf-8");
 
-  // Cria o Quadro Zerado para o Usuário no db.json
+  // Cria o Quadro Zerado para o Usuário no db.json tipado
   try {
     const conteudoCrm = await fs.readFile(caminhoCrm, "utf-8");
-    const bancoCrm = JSON.parse(conteudoCrm);
+    const bancoCrm = JSON.parse(conteudoCrm) as BancoDeDadosProps;
 
-    const novoQuadro = {
+    const colunasPadrao: ColunaProps[] = [
+      { idDaColuna: "col-1", titulo: "Prospecção", cards: [] },
+      { idDaColuna: "col-2", titulo: "Proposta", cards: [] },
+      { idDaColuna: "col-3", titulo: "Fechamento", cards: [] }
+    ];
+
+    const novoQuadro: QuadroProps = {
       id: crypto.randomUUID(),
       titulo: `Pipeline de ${novoUsuario.nome}`,
       donoId: novoUsuario.id,
-      membrosIds: [novoUsuario.id], // Ele mesmo já é membro do próprio quadro
-      colunas: [
-        { idDaColuna: "col-prospeccao", titulo: "Prospecção", cards: [] },
-        { idDaColuna: "col-proposta", titulo: "Proposta", cards: [] },
-        { idDaColuna: "col-fechamento", titulo: "Fechamento", cards: [] }
-      ]
+      membrosIds: [novoUsuario.id],
+      colunas: colunasPadrao
     };
 
-    // Se a propriedade quadros não existir, cria ela
     if (!bancoCrm.quadros) bancoCrm.quadros = [];
     
     bancoCrm.quadros.push(novoQuadro);
     await fs.writeFile(caminhoCrm, JSON.stringify(bancoCrm, null, 2), "utf-8");
   } catch (error) {
     console.error("Erro ao criar o quadro inicial:", error);
-    // Em um sistema real, você faria um "rollback" (apagaria o usuário) se o quadro falhasse.
   }
+
+  // Já autentica o usuário automaticamente injetando o cookie
+  const cookieStore = await cookies();
+  cookieStore.set("crm_session", novoUsuario.id, {
+    httpOnly: true, 
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 7, 
+    path: "/", 
+  });
 
   return { sucesso: true, mensagem: "Conta e Pipeline criados com sucesso!" };
 }
@@ -102,11 +114,8 @@ export async function loginAction(email: string, senhaDigitada: string) {
     return { sucesso: false, mensagem: "Senha incorreta." };
   }
 
-  // 3. Cria a "Sessão" (O Crachá)
-  // Salva o ID do usuário em um cookie criptografado no navegador que dura 7 dias
+  // 3. Cria a Sessão
   const cookieStore = await cookies();
-  
-  // Agora sim podemos usar o set!
   cookieStore.set("crm_session", usuario.id, {
     httpOnly: true, 
     secure: process.env.NODE_ENV === "production",
@@ -117,7 +126,6 @@ export async function loginAction(email: string, senhaDigitada: string) {
   return { sucesso: true, mensagem: "Login efetuado com sucesso!" };
 }
 
-// Adicione esta função ao final do arquivo auth.actions.ts existente
 export async function logoutAction() {
   const cookieStore = await cookies();
   cookieStore.delete("crm_session");

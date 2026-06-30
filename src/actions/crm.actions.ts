@@ -10,6 +10,20 @@ const caminhoCrm = path.join(process.cwd(), "src", "infrastructure", "database",
 // ==========================================
 // 1. TIPAGENS (Resolvendo o problema do 'any')
 // ==========================================
+// Adicione a tipagem do usuário
+export interface UsuarioProps {
+  id: string;
+  nome: string;
+  email: string;
+  senha?: string;
+}
+
+// Atualize a interface do BancoDeDadosProps
+export interface BancoDeDadosProps {
+  usuarios?: UsuarioProps[]; // <-- Linha adicionada para o Auth!
+  quadros: QuadroProps[];
+}
+
 export interface TarefaClienteProps {
   id: string;
   tipo: string;
@@ -42,6 +56,7 @@ export interface QuadroProps {
 }
 
 export interface BancoDeDadosProps {
+  usuarios?: UsuarioProps[]; // <-- Linha adicionada para o Auth!
   quadros: QuadroProps[];
 }
 

@@ -14,6 +14,32 @@
           "titulo": "Prospecção",
           "cards": [
             {
+              "id": "lead-002",
+              "titulo": "InovaTech LTDA",
+              "empresa": "InovaTech",
+              "valorFormatado": "R$ 8.500,00",
+              "atividades": []
+            },
+            {
+              "id": "prop-001",
+              "titulo": "Global Systems",
+              "empresa": "Global Systems",
+              "valorFormatado": "R$ 22.000,00"
+            },
+            {
+              "id": "1782847125296",
+              "titulo": "dd",
+              "subtitulo": "dd",
+              "valorFormatado": "R$ 858",
+              "corDestaque": "azul"
+            }
+          ]
+        },
+        {
+          "idDaColuna": "col-proposta",
+          "titulo": "Proposta",
+          "cards": [
+            {
               "id": "lead-001",
               "titulo": "Tech Corp SA",
               "empresa": "Tech Corp",
@@ -32,29 +58,34 @@
               ]
             },
             {
-              "id": "lead-002",
-              "titulo": "InovaTech LTDA",
-              "empresa": "InovaTech",
-              "valorFormatado": "R$ 8.500,00",
-              "atividades": []
-            },
-            {
-              "id": "prop-001",
-              "titulo": "Global Systems",
-              "empresa": "Global Systems",
-              "valorFormatado": "R$ 22.000,00"
+              "id": "cli-003",
+              "titulo": "Beta Logística",
+              "empresa": "Beta Log",
+              "valorFormatado": "R$ 9.800,00",
+              "statusNegociacao": "indeferida",
+              "tarefas": []
             }
           ]
-        },
-        {
-          "idDaColuna": "col-proposta",
-          "titulo": "Proposta",
-          "cards": []
         },
         {
           "idDaColuna": "col-fechamento",
           "titulo": "Fechamento",
           "cards": [
+            {
+              "id": "cli-002",
+              "titulo": "Mega Store Importações",
+              "empresa": "Mega Store",
+              "valorFormatado": "R$ 12.000,00",
+              "statusNegociacao": "fechada",
+              "tarefas": [
+                {
+                  "id": "c6b11bf8-e715-48be-9e7e-fd26d2947a94",
+                  "tipo": "lembrete",
+                  "descricao": "UGAUGA",
+                  "data": "2026-06-26"
+                }
+              ]
+            },
             {
               "id": "cli-001",
               "titulo": "Alpha Solutions",
@@ -81,29 +112,6 @@
                   "data": "2026-06-29"
                 }
               ]
-            },
-            {
-              "id": "cli-002",
-              "titulo": "Mega Store Importações",
-              "empresa": "Mega Store",
-              "valorFormatado": "R$ 12.000,00",
-              "statusNegociacao": "fechada",
-              "tarefas": [
-                {
-                  "id": "c6b11bf8-e715-48be-9e7e-fd26d2947a94",
-                  "tipo": "lembrete",
-                  "descricao": "UGAUGA",
-                  "data": "2026-06-26"
-                }
-              ]
-            },
-            {
-              "id": "cli-003",
-              "titulo": "Beta Logística",
-              "empresa": "Beta Log",
-              "valorFormatado": "R$ 9.800,00",
-              "statusNegociacao": "indeferida",
-              "tarefas": []
             }
           ]
         }
