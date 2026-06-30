@@ -1,14 +1,40 @@
 import { obterMetricasDoPipeline } from "@/services/dashboard.service";
 import { jsonDb } from "@/infrastructure/database/json-client";
 import { KanbanColumnProps } from "@/shared/types/ui/kanban-board.props";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+// 1. Tipagens para o TypeScript entender a nova estrutura
+interface QuadroProps {
+  id: string;
+  membrosIds: string[];
+  colunas: KanbanColumnProps[];
+}
+
+interface BancoDeDadosProps {
+  quadros: QuadroProps[];
+}
 
 export default async function PipelineDashboardPage() {
-  // 1. Lê os 3 cards do topo usando o serviço que já criamos
-  const metricas = await obterMetricasDoPipeline();
+  // 2. Controle de Sessão e Isolamento
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("crm_session")?.value;
 
-  // 2. Lê os dados brutos do banco para desenhar o gráfico do funil
-  const banco = await jsonDb.ler();
-  const colunas: KanbanColumnProps[] = banco.colunas;
+  if (!userId) redirect("/login");
+
+  // 3. Lê o banco usando o Double Cast
+  const banco = (await jsonDb.ler()) as unknown as BancoDeDadosProps;
+  
+  const quadros = banco.quadros || [];
+  const quadroDoUsuario = quadros.find((q: QuadroProps) => q.membrosIds.includes(userId));
+
+  if (!quadroDoUsuario) redirect("/login");
+
+  // 4. Isolamos as colunas exclusivas deste usuário
+  const colunas = quadroDoUsuario.colunas;
+
+  // 5. Passamos as colunas do usuário para o serviço calcular as métricas apenas dele!
+  const metricas = await obterMetricasDoPipeline(colunas);
 
   // Descobre qual coluna tem mais cards para definir ela como o 100% da largura da barra
   const maxCards = Math.max(...colunas.map(c => c.cards.length), 1);
@@ -25,7 +51,7 @@ export default async function PipelineDashboardPage() {
         </p>
       </div>
 
-      {/* Cards de Métricas Principais (Agora conectados ao banco!) */}
+      {/* Cards de Métricas Principais */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {metricas.map((metrica) => (
           <div key={metrica.titulo} className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center">
@@ -55,11 +81,9 @@ export default async function PipelineDashboardPage() {
                   {coluna.titulo} ({qtd})
                 </span>
                 
-                {/* Container flexível que centraliza a barra para criar o formato de \ / */}
                 <div className="flex-1 ml-4 h-6 flex justify-center bg-gray-50 rounded-full overflow-hidden border border-gray-100">
                   <div 
                     className={`h-full ${corBarra} rounded-full transition-all duration-700 ease-in-out`}
-                    // O style inline é usado aqui porque as classes do Tailwind não suportam larguras dinâmicas exatas calculadas no JS
                     style={{ width: `${larguraPorcentagem}%` }} 
                   ></div>
                 </div>
