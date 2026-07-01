@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { loginAction } from "@/actions/database/auth.actions";
+import { loginAction } from "@/actions/database/auth.actions"; // Importação confirmada
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,17 +19,24 @@ export default function LoginPage() {
     setErro(null);
     setCarregando(true);
 
-    const resposta = await loginAction(email, senha);
+    try {
+      const resposta = await loginAction(email, senha);
 
-    if (!resposta.sucesso) {
-      setErro(resposta.mensagem);
+      if (!resposta.sucesso) {
+        setErro(resposta.mensagem || "Erro ao autenticar.");
+        setCarregando(false);
+        return;
+      }
+
+      // IMPORTANTE: Recarrega o estado das rotas antes de redirecionar
+      // Isso garante que o Middleware reconheça o novo cookie de sessão imediatamente
+      router.refresh();
+      router.push("/dashboard/kanban"); 
+      
+    } catch (err) {
+      setErro("Ocorreu um erro ao conectar com o servidor.");
       setCarregando(false);
-      return;
     }
-
-    // Se deu certo, o cookie já foi salvo pelo servidor!
-    // Só precisamos mandar o usuário para dentro do sistema
-    router.push("/dashboard/kanban"); // Ajuste para a rota principal do seu CRM
   };
 
   return (
@@ -82,7 +89,7 @@ export default function LoginPage() {
               type="submit"
               disabled={carregando}
               className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
-                carregando && "opacity-70 cursor-not-allowed"
+                carregando ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
               {carregando ? "Entrando..." : "Entrar"}

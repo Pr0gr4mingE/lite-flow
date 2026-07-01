@@ -35,23 +35,32 @@ export default function CadastroPage() {
 
     setCarregando(true);
 
-    // Chama o servidor
-    const resposta = await cadastrarUsuarioAction({ nome, email, senha });
+    try {
+      // Chama o servidor
+      const resposta = await cadastrarUsuarioAction({ nome, email, senha });
 
-    if (!resposta.sucesso) {
-      setErro(resposta.mensagem);
+      if (!resposta.sucesso) {
+        setErro(resposta.mensagem || "Erro ao criar conta.");
+        setCarregando(false);
+        return;
+      }
+
+      // Deu tudo certo!
+      setSucesso(true);
       setCarregando(false);
-      return;
-    }
+      
+      // IMPORTANTE: Recarrega as rotas para o Middleware enxergar o cookie de sessão
+      router.refresh();
+      
+      // Redireciona para o painel após 1.5 segundos para o usuário ler a mensagem de sucesso
+      setTimeout(() => {
+        router.push("/dashboard/kanban"); 
+      }, 1500);
 
-    // Deu tudo certo!
-    setSucesso(true);
-    setCarregando(false);
-    
-    // Redireciona para o login ou dashboard após 2 segundos
-    setTimeout(() => {
-      router.push("/dashboard"); // Ajuste para a rota inicial do seu sistema
-    }, 2000);
+    } catch (err) {
+      setErro("Ocorreu um erro inesperado. Tente novamente.");
+      setCarregando(false);
+    }
   };
 
   return (
@@ -130,7 +139,7 @@ export default function CadastroPage() {
               type="submit"
               disabled={carregando || sucesso}
               className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
-                (carregando || sucesso) && "opacity-70 cursor-not-allowed"
+                (carregando || sucesso) ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
               {carregando ? "Criando conta..." : "Cadastrar"}
