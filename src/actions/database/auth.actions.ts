@@ -131,3 +131,75 @@ export async function logoutAction() {
   cookieStore.delete("crm_session");
   redirect("/login");
 }
+
+// ==========================================
+// AÇÕES DE GERENCIAMENTO DE PERFIL
+// ==========================================
+
+export async function editarPerfilAction(dadosAtualizados: { nome?: string; email?: string; senhaAtual?: string; novaSenha?: string }) {
+  try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get("crm_session")?.value;
+    if (!userId) return { sucesso: false, mensagem: "Não autenticado." };
+
+    const bancoUsuarios = await lerBancoUsuarios();
+    const usuarioIndex = bancoUsuarios.usuarios.findIndex((u: UsuarioProps) => u.id === userId);
+
+    if (usuarioIndex === -1) return { sucesso: false, mensagem: "Usuário não encontrado." };
+
+    const usuario = bancoUsuarios.usuarios[usuarioIndex];
+
+    // Se ele quiser trocar a senha, precisamos validar a senha atual
+    if (dadosAtualizados.novaSenha) {
+      if (usuario.senha !== dadosAtualizados.senhaAtual) {
+        return { sucesso: false, mensagem: "Senha atual incorreta." };
+      }
+      usuario.senha = dadosAtualizados.novaSenha;
+    }
+
+    // Atualiza nome e email se foram enviados
+    if (dadosAtualizados.nome) usuario.nome = dadosAtualizados.nome;
+    if (dadosAtualizados.email) usuario.email = dadosAtualizados.email;
+
+    bancoUsuarios.usuarios[usuarioIndex] = usuario;
+    await fs.writeFile(caminhoUsuarios, JSON.stringify(bancoUsuarios, null, 2), "utf-8");
+
+    return { sucesso: true, mensagem: "Perfil atualizado com sucesso!" };
+  } catch (error) {
+    return { sucesso: false, mensagem: "Erro ao atualizar perfil." };
+  }
+}
+
+export async function excluirContaAction() {
+  try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get("crm_session")?.value;
+    if (!userId) return { sucesso: false, mensagem: "Não autenticado." };
+
+    // 1. Remove o usuário do users.json
+    const bancoUsuarios = await lerBancoUsuarios();
+    bancoUsuarios.usuarios = bancoUsuarios.usuarios.filter((u: UsuarioProps) => u.id !== userId);
+    await fs.writeFile(caminhoUsuarios, JSON.stringify(bancoUsuarios, null, 2), "utf-8");
+
+   // 2. Remove o quadro dele do db.json
+    try {
+      const conteudoCrm = await fs.readFile(caminhoCrm, "utf-8");
+      const bancoCrm = JSON.parse(conteudoCrm);
+      
+      if (bancoCrm.quadros) {
+        // Substituindo o 'any' pelo 'QuadroProps' que já foi importado
+        bancoCrm.quadros = bancoCrm.quadros.filter((q: QuadroProps) => q.donoId !== userId);
+        await fs.writeFile(caminhoCrm, JSON.stringify(bancoCrm, null, 2), "utf-8");
+      }
+    } catch (err) {
+      console.error("Erro ao apagar o quadro do usuário:", err);
+    }
+
+    // 3. Deleta o cookie e expulsa do sistema
+    cookieStore.delete("crm_session");
+    
+    return { sucesso: true };
+  } catch (error) {
+    return { sucesso: false, mensagem: "Erro ao excluir conta." };
+  }
+}
