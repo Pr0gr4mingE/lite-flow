@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { KanbanColumnProps } from '@/shared/types/ui/kanban-board.props'; // <-- Importação da tipagem real
 
+
 // 1. Tipagem exata sem uso de 'any'
 export interface QuadroProps {
   id: string;

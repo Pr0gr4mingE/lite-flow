@@ -210,3 +210,80 @@ export async function agendarReuniaoAction(clienteId: string | number, novaReuni
     return { sucesso: false, erro: "Ocorreu um erro desconhecido." };
   }
 }
+
+// ==========================================
+// 5. AÇÕES DE EDIÇÃO E EXCLUSÃO
+// ==========================================
+
+export async function editarCardAction(
+  cardId: string, 
+  dadosAtualizados: { titulo?: string; empresa?: string; valorFormatado?: string }
+) {
+  try {
+    // 1. Pega o banco e o quadro do usuário logado (Segurança!)
+    const { banco, quadro } = await obterBancoEQuadro();
+    let cardEncontrado = false;
+
+    // 2. Varre as colunas do usuário procurando o card
+    quadro.colunas.forEach((coluna: ColunaProps) => {
+      coluna.cards.forEach((card: CardProps) => {
+        if (card.id === cardId) {
+          // 3. Atualiza apenas os campos que foram enviados
+          if (dadosAtualizados.titulo) card.titulo = dadosAtualizados.titulo;
+          if (dadosAtualizados.empresa) card.empresa = dadosAtualizados.empresa;
+          if (dadosAtualizados.valorFormatado) card.valorFormatado = dadosAtualizados.valorFormatado;
+          
+          cardEncontrado = true;
+        }
+      });
+    });
+
+    if (!cardEncontrado) {
+      throw new Error("Card não encontrado neste quadro.");
+    }
+
+    // 4. Salva e atualiza as telas
+    await salvarBanco(banco);
+    revalidatePath("/dashboard/kanban");
+    revalidatePath("/leads");
+    revalidatePath("/clientes");
+    
+    return { sucesso: true, mensagem: "Card atualizado com sucesso!" };
+  } catch (error: unknown) {
+    if (error instanceof Error) return { sucesso: false, erro: error.message };
+    return { sucesso: false, erro: "Erro ao editar o card." };
+  }
+}
+
+export async function excluirCardAction(cardId: string) {
+  try {
+    const { banco, quadro } = await obterBancoEQuadro();
+    let cardRemovido = false;
+
+    // Varre as colunas e filtra o array de cards, removendo o card com o ID informado
+    quadro.colunas.forEach((coluna: ColunaProps) => {
+      const tamanhoOriginal = coluna.cards.length;
+      
+      coluna.cards = coluna.cards.filter((card: CardProps) => card.id !== cardId);
+      
+      // Se o tamanho diminuiu, significa que achamos e removemos o card aqui
+      if (coluna.cards.length < tamanhoOriginal) {
+        cardRemovido = true;
+      }
+    });
+
+    if (!cardRemovido) {
+      throw new Error("Card não encontrado neste quadro.");
+    }
+
+    await salvarBanco(banco);
+    revalidatePath("/dashboard/kanban");
+    revalidatePath("/leads");
+    revalidatePath("/clientes");
+    
+    return { sucesso: true, mensagem: "Card excluído com sucesso!" };
+  } catch (error: unknown) {
+    if (error instanceof Error) return { sucesso: false, erro: error.message };
+    return { sucesso: false, erro: "Erro ao excluir o card." };
+  }
+}
